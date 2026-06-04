@@ -1,0 +1,92 @@
+package com.example.ecommerce.controller;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
+
+import com.example.ecommerce.config.AuthUtil;
+import com.example.ecommerce.model.Carts;
+import com.example.ecommerce.repository.CartRepository;
+import com.example.ecommerce.responseDTO.CartDTO;
+import com.example.ecommerce.responseDTO.CartItemDTO;
+import com.example.ecommerce.service.CartService;
+
+
+@RestController
+@RequestMapping("/api")
+public class CartController {
+    
+    @Autowired
+    private CartService cartService;
+
+    @Autowired
+    private AuthUtil authUtil;
+    
+    @Autowired
+    private CartRepository cartRepository;
+    
+    @PostMapping("/cart/create")
+    public ResponseEntity<String> createOrUpdateCart(@RequestBody List<CartItemDTO> cartItems )
+    {
+        System.out.println("INSIDE CREATE CART");
+
+       String response= cartService.createOrUpdateCart(cartItems);
+        return new ResponseEntity<>("response", HttpStatus.CREATED);
+    }
+
+    @PostMapping("/cart/product/{productId}/quantity/{quantity}")
+    public ResponseEntity<CartDTO> addProductToCart(@PathVariable Long productId, @PathVariable Integer quantity )
+    {
+        CartDTO cart= cartService.addProductToCart(productId,quantity);
+        return new ResponseEntity<>(cart, HttpStatus.CREATED);
+    }
+    @GetMapping("/carts")
+    public ResponseEntity<List<CartDTO>> getAllCarts()
+    {
+        List<CartDTO> carts= cartService.getAllCarts();
+        return new ResponseEntity<>(carts, HttpStatus.FOUND);
+    }
+    
+    @GetMapping("/carts/users/cart")
+    public ResponseEntity<CartDTO> getCartById(){
+        String emailId = authUtil.loggedInEmail();
+        Carts cart = cartRepository.findCartByEmail(emailId);
+        if(cart==null)
+        {
+            throw new ResponseStatusException(HttpStatus.NO_CONTENT, "With this mail no carts present" ); 
+        }
+        Long cartId = cart.getCartId();
+        CartDTO cartDTO = cartService.getCart(emailId, cartId);
+        return new ResponseEntity<>(cartDTO, HttpStatus.OK);
+    }
+    
+    @PutMapping("/cart/products/{productId}/quantity/{operation}")
+    public ResponseEntity<CartDTO> updateCartProduct(@PathVariable Long productId,
+                                                     @PathVariable String operation) {
+
+        CartDTO cartDTO = cartService.updateProductQuantityInCart(productId,
+                operation.equalsIgnoreCase("delete") ? -1 : 1);
+
+        return new ResponseEntity<>(cartDTO, HttpStatus.OK);
+    }
+
+    @DeleteMapping("/carts/{cartId}/product/{productId}")
+    public ResponseEntity<String> deleteProductFromCart(@PathVariable Long cartId,
+                                                        @PathVariable Long productId) {
+        String status = cartService.deleteProductFromCart(cartId, productId);
+
+        return new ResponseEntity<String>(status, HttpStatus.OK);
+    }
+}
