@@ -42,10 +42,7 @@ public class CartService {
      ModelMapper modelMapper;
 
     public CartDTO addProductToCart(Long productId, Integer quantity) {
-        System.out.println("checking before");
         Carts cart  = createCart();
-        System.out.println("checking after");
-        System.out.println(cart);
 
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "With id "+productId+ " no product present" ));
@@ -189,8 +186,7 @@ public class CartService {
             cartRepository.save(cart);
 
         CartItems updatedItem = cartItemRepository.save(cartItem);
-        // System.out.println("checking quantity"+ updatedItem.getQuantity());
-        if(updatedItem.getQuantity() == 0){
+         if(updatedItem.getQuantity() == 0){
             cart.getCartItems().remove(updatedItem);
            deleteProductFromCart(cartId, productId);
         }
@@ -253,11 +249,9 @@ public class CartService {
     @Transactional
     public String createOrUpdateCart(List<CartItemDTO> cartItemsDTO) {
         
-        System.out.println("ace1");
         String emailId = authUtil.loggedInEmail();
         Carts userCart = cartRepository.findCartByEmail(emailId);
         
-        System.out.println("ace2");
         if(userCart ==null)
         {
             userCart=new Carts();
@@ -270,12 +264,10 @@ public class CartService {
              cartItemRepository.deleteCartItemByCartId(userCart.getCartId());
         }
         double total=0.0;
-        System.out.println("ace3");
         for(CartItemDTO cartItemDTO: cartItemsDTO)
         {
             long productId=cartItemDTO.getProductId();
             int quantity= cartItemDTO.getQuantity();
-            System.out.println("ace4");
             Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "this product of id is not present" ));
             total+=product.getSpecialPrice()*quantity;
@@ -286,12 +278,9 @@ public class CartService {
             cartItems.setDiscount(product.getDiscount());
             cartItems.setProductPrice(product.getSpecialPrice());
             cartItemRepository.save(cartItems);
-            System.out.println("q1uan:"+quantity);
-            System.out.println("sp1:"+product.getSpecialPrice());
         }
         userCart.setTotalAmount(total);
         
-            System.out.println("t1otal:"+total);
         cartRepository.save(userCart);
         return "cart created successfully";
     }

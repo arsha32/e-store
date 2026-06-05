@@ -47,7 +47,6 @@ public class ProductController{
         @RequestParam(name="sortOrder" ,defaultValue = AppConstants.SORT_ORDER, required = false ) String sortOrder
     )
     {
-        System.out.println("Category controller"+categoryName);
         ProductResponse productResponse=productService.getALLProducts(pageNumber,pageSize, sortBy, sortOrder,categoryName, keyword);
         return new ResponseEntity<>(productResponse,  HttpStatus.OK);
     }

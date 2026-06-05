@@ -40,7 +40,6 @@ public class CartController {
     @PostMapping("/cart/create")
     public ResponseEntity<String> createOrUpdateCart(@RequestBody List<CartItemDTO> cartItems )
     {
-        System.out.println("INSIDE CREATE CART");
 
        String response= cartService.createOrUpdateCart(cartItems);
         return new ResponseEntity<>("response", HttpStatus.CREATED);
